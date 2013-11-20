@@ -98,7 +98,9 @@ def extract_sanger(seq_path, rs1, rs2,
         seqrecords = load_fasta_file(seq_path, **kwargs)
     
     [clean_seq_name(seq, **kwargs) for seq in seqrecords]
-    seqrecords = extract_between_restr_sites(seqrecords, rs1, rs2)
+
+    if rs1 or rs2:
+        seqrecords = extract_between_restr_sites(seqrecords, rs1, rs2)
     
     if revcom: 
         for sr in seqrecords: sr.seq = sr.seq.reverse_complement()
