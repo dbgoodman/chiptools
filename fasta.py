@@ -29,7 +29,7 @@ def extract_between_restr_sites(sr, rs1, rs2, prefix='', suffix='',
     else:
         raise(InputError,
             'Seq must be a SeqRecord list, a SeqRecord, or a Seq')
-            
+
     if rs1 in seq.upper():
         index1 = seq.upper().find(rs1)
         if rs2 in seq.upper()[index1:]:
