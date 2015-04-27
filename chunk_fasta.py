@@ -3,7 +3,7 @@
 
 '''
 Created by Brant Faircloth on 11 December 2010 11:28 PST (-0800).
-MODIFIED HEAVILY BY ME, ADDED OPTIONS, SPLITTING, AND GZIP COMPATIBILITY
+MODIFIED HEAVILY BY DBG, ADDED OPTIONS, SPLITTING, AND GZIP COMPATIBILITY
 Copyright (c) 2010 Brant C. Faircloth. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -20,16 +20,16 @@ modification, are permitted provided that the following conditions are met:
     contributors may be used to endorse or promote products derived from this
     software without specific prior written permission. THIS SOFTWARE IS
     PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-    OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
-    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
-    POSSIBILITY OF SUCH DAMAGE. 
+    OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
 
 '''
 
@@ -63,7 +63,7 @@ def file_type(input):
     else:
         raise IOError, "Input file not of correct extension"
     return ft, delim, gz
-    
+
 def _get_file_chunks(input, delim, size, gz):
     """given input, record delimiter, and chunk size, yield an iterator contains file seek (start)
     and file read (stop) positions.  Return final position as (6365605, None)."""
@@ -90,12 +90,12 @@ def _get_file_chunks(input, delim, size, gz):
     # make sure we catch the (start, distance) for the end of the file, too
     yield start, None, input
     f.close()
-    
+
 def get_chunks(input, delim, split_type, mb=1, splits= None, gz= False):
-    
+
     #do not split below 128 kb
     minsize = (1024**2) / 8
-    
+
     """return a tuple of file seek (start, distance) positions covering chunks of a file"""
     if os.path.getsize(input) > minsize:
         if split_type == 'size':
@@ -110,9 +110,9 @@ def get_chunks(input, delim, split_type, mb=1, splits= None, gz= False):
 
 def _split_file(chunk_gz):
     """function to split a file into appropriate pieces given (start, stop) file seek coords"""
-    
+
     chunk, gz = chunk_gz
-    
+
     if gz:
         f = gzip.open(chunk[2])
     else:
@@ -134,13 +134,13 @@ def _split_file(chunk_gz):
     otf.close()
     f.close()
     return tf
-    
+
 def make_chunks(chunks, pool = None, mp = True, gz= False):
     """return a list of tempfiles that are the chunked input file"""
     chunk_gz_iter = itertools.izip(chunks, itertools.repeat(gz))
-    
+
     mp = False
-    
+
     if mp and not pool:
         # create a multiprocessing pool
         procs = multiprocessing.cpu_count() - 1
@@ -151,17 +151,17 @@ def make_chunks(chunks, pool = None, mp = True, gz= False):
         pool.join()
     else:
         chunks = map(_split_file, chunk_gz_iter)
-        
+
     return chunks
 
-def chunk_file(input_fn, split_type='pieces', mb= 24, splits= None, 
+def chunk_file(input_fn, split_type='pieces', mb= 24, splits= None,
     tempdir=tempfile.tempdir, mp= True, **kwargs):
-    
-    #this needs to be set manually in some cases so that we can easily move 
-    #file names after making temporary files without shuttling all the data 
+
+    #this needs to be set manually in some cases so that we can easily move
+    #file names after making temporary files without shuttling all the data
     #between mounts
     tempfile.tempdir = tempdir
-    
+
     f_type, delim, gz = file_type(input_fn)
     chunk_offsets = get_chunks(input_fn, delim, split_type, mb, splits, gz)
     chunks = make_chunks(chunk_offsets, mp= mp, gz= gz)
@@ -170,9 +170,9 @@ def chunk_file(input_fn, split_type='pieces', mb= 24, splits= None,
 def store_chunk_files(input_fn, output_form, output_dir, **kwargs):
     '''In case you want your chunks to be a little less temporary, but also
     to be gzipped, this allows you to do so given an output format. It
-    makes temporary chunk files and then changes their filenames according 
-    to the format specified. 
-    
+    makes temporary chunk files and then changes their filenames according
+    to the format specified.
+
     output form should have one format digit for the chunk number. For
     instance, if the input file is:
         '202S-1_ACCTGA_L001_R1_001.fastq.gz'
@@ -184,4 +184,4 @@ def store_chunk_files(input_fn, output_form, output_dir, **kwargs):
     for chunk_num, chunk in enumerate(chunk_file(input_fn, **kwargs)):
         print "\tMoving file from %s to %s" % (chunk, output_form % chunk_num)
         shutil.move(chunk, output_form % chunk_num)
-    
+

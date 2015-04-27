@@ -1,0 +1,3 @@
+[submodule "SeqPrep"]
+	path = SeqPrep
+	url = https://github.com/dbgoodman/SeqPrep
